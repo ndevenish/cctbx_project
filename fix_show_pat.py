@@ -157,8 +157,8 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
     """Do the processing/modification of the class node"""
     print("show(): {}:{}".format(filename, node.get_lineno()))
     suite = get_child(node, python_symbols.suite)
-    # if "someclass.py" in filename:
-    #     breakpoint()
+    if "table_utils.py" in filename:
+        breakpoint()
     # Get the suite indent
     indent = find_indentation(suite)
 
@@ -203,6 +203,9 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
 
 def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
     """Filter out potential matches that don't qualify"""
+    if "table_utils.py" in filename:
+        breakpoint()
+
     suite = get_child(node, python_symbols.suite)
     func_names = [
         x.children[1].value for x in get_children(suite, python_symbols.funcdef)
@@ -248,6 +251,6 @@ def main():
         .select(PATTERN)
         .filter(do_filter)
         .modify(process_class)
-        .execute(interactive=False, write=True, silent=False)
+        .execute(interactive=False, write=False, silent=False)
     )
 

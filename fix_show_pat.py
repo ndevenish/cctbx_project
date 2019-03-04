@@ -221,10 +221,17 @@ def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
         return False
 
     # If we don't inherit from object directly we could already have a __str__ inherited
-    class_parents = get_child(node, python_symbols.arglist)
+    class_parents = []
+    if len(node.children) == 7:
+        if node.children[3].type == python_symbols.arglist:
+            class_parents = get_child(node, python_symbols.arglist).children
+        elif node.children[3].type == token.NAME:
+            class_parents = [node.children[3]]
+        else:
+            raise RuntimeError("Unexpected node type")
     if class_parents:
         parent_list = {
-            str(x).strip() for x in class_parents.children if not x.type == token.COMMA
+            str(x).strip() for x in class_parents if not x.type == token.COMMA
         }
         if not parent_list == {"object"}:
             print(

@@ -36,7 +36,12 @@ driver = fissix.pgen2.driver.Driver(
 
 
 def print_node(node: LN, max_depth: int = 1000, indent: str = "", last: bool = True):
-    """Debugging function to print node tree"""
+    """Debugging function to print node tree.
+
+    Arguments:
+        node: The node to print
+        max_depth: The maximum recursion depth to walk children
+    """
     if last:
         first_i = "└─"
         second_i = "  "
@@ -108,7 +113,12 @@ def get_trailing_text_node(node: Node) -> Leaf:
             return tail
     return first
 
-def split_suffix(leaf):
+def split_suffix(leaf : Leaf) -> Tuple[str,str]:
+    """Split a suffix node (a DEDENT with prefix) into two.
+
+    The indentation of the leaf is discovered so that comments that
+    are inline with the previous block remain part of the prefix.
+    """
     indent = find_indentation(leaf)
     parts = leaf.prefix.split("\n")
     pre = []
@@ -150,14 +160,7 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
     trail_node = get_trailing_text_node(suite)
     pre, post = split_suffix(trail_node)
 
-    # post = trail_node.prefix
-    # if "energies_geom.py" in filename:
-    #     breakpoint()
-    # if "maptbx" in filename and node.children[1].value == "spherical_variance_around_point":
-    #     breakpoint()
-
-
-    # The contents of this node will be moved
+    # The trailing contents of this node will be moved
     trail_node.prefix = pre
 
     # Get the dedent node at the end of the previous - suite always ends with dedent
@@ -165,7 +168,6 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
     # function
     # If we aren't after a suite then we don't have a DEDENT so don't need to
     # correct the indentation.
-    #
     # children[-2] is the last statement at the end of the suite
     # children[-1] is the suite on a function definition
     # children[-1] is the dedent at the end of the function's suite
@@ -178,6 +180,7 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
     # Get the kludge dedent - now the last dedent
     kludge_dedent = kludge_node.children[-1].children[-1]
     kludge_dedent.prefix = post
+    # Make sure the function is available
     touch_import("libtbx.utils", "kludge_show_to_str", node)
 
 

@@ -133,6 +133,8 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
 
     # if "maptbx" in filename and node.children[1].value == "spherical_variance_around_point":
     #     breakpoint()
+    if "table_utils.py" in filename:
+        breakpoint()
 
     # The contents of this node will be moved
     trail_node.prefix = ""
@@ -160,8 +162,6 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
 
 def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
     """Filter out potential matches that don't qualify"""
-    if "table_utils.py" in filename:
-        return True
 
     suite = get_child(node, python_symbols.suite)
     func_names = [

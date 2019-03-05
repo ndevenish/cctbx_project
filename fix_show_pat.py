@@ -143,7 +143,7 @@ def get_trailing_text_node(node):
 
 def split_dedent_trails(prefix, indent):
     "Using the previous indent level, splits text pre-and-post indent"
-    # parts = prefix.split("\n")
+    #
     # parts = [parts[0]] + ["\n" + x for x in parts[1:]]
     # # parts = [x + "\n" for x in parts[:-1]] + [parts[-1]]
     # pre = []
@@ -154,28 +154,45 @@ def split_dedent_trails(prefix, indent):
     #     i += 1
     # return "".join(parts[:i]), "".join(parts[i:])
     parts = prefix.split("\n")
-    return "\n".join(parts[:-1]), "\n"+parts[-1]
-    # next_indent = parts[-1]
-    # pre = ""
-    # for i, part in enumerate(parts):
-    #     if i == 0:
-    #         pre += part
-    #     else:
-    #         pre += "\n" + part
+    # Work out where the pre/post change over
+    # pre = []
+    # for post_start, part in enumerate(parts[:-1]):
+    #     if part.startswith(indent)
+
+    # for post_index, part in enumerate(parts[:-1]):
+    #     # If empty string, then we could still be part of the 
+    #     if not part:
+    #         continue
+
+    # prepend any newlines to all parts
+    for i, part in enumerate(parts):
+        if i == 0:
+            continue
+        parts[i] = "\n" + part
+    return parts[0], "".join(parts[1:])
+
 
 def test_split_dedent_trails():
-    assert split_dedent_trails("some", "  ") == ("", "some")
+    # assert split_dedent_trails("some", "  ") == ("", "some")
+    # breakpoint()
     assert split_dedent_trails("\nsome", "  ") == ("", "\nsome")
-    assert split_dedent_trails("\n  some", "  ") == ("\n  some", "")
-    assert split_dedent_trails("","  ") == ("","")
+    assert split_dedent_trails("", "  ") == ("", "")
+    assert split_dedent_trails("\n    some\n  ", "    ") == ("\n    some", "\n  ")
+    breakpoint()
+    assert split_dedent_trails(
+        "\n# http://stackoverflow.com/questions/1392413/calculating-a-directory-size-using-python\n",
+        "  ",
+    ) == (
+        "",
+        "\n# http://stackoverflow.com/questions/1392413/calculating-a-directory-size-using-python\n",
+    )
 
 
 def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN]:
     """Do the processing/modification of the class node"""
     print("show(): {}:{}".format(filename, node.get_lineno()))
     suite = get_child(node, python_symbols.suite)
-    if "table_utils.py" in filename:
-        breakpoint()
+
     # Get the suite indent
     indent = find_indentation(suite)
 
@@ -197,22 +214,24 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
     #     pre, post = "",""
 
     # Get the dedent node at the end of the previous - suite always ends with dedent
+    # This is the dedent before the end of the suite, so the one to alter for the new
+    # function
     # children[-2] is the last statement at the end of the suite
     # children[-1] is the suite on a function definition
     # children[-1] is the dedent at the end of the function's suite
-    # dedent_node = suite.children[-2].children[-1].children[-1]
-    # if not dedent_node.prefix and trail_node:
-    #     breakpoint()
-    #     dedent_node = trail_node
-    # old_dedent = dedent_node.prefix
-    # assert dedent_node.type == token.DEDENT
-    # dedent_node.prefix = "\n" + indent
-    trail_node.prefix = pre+"\n"+indent
+    if suite.children[-2].type == python_symbols.funcdef:
+        last_func_dedent_node = suite.children[-2].children[-1].children[-1]
+
+    if "path.py" in filename:
+        breakpoint()
+
+    last_func_dedent_node.prefix = pre + "\n" + indent
+    # trail_node.prefix = pre+"\n"+indent
     suite.children.insert(-1, kludge_node)
     # Get the kludge dedent
     # breakpoint()
     kludge_dedent = kludge_node.children[-1].children[-1]
-    kludge_dedent.prefix += post
+    kludge_dedent.prefix = post
     # breakpoint()
 
     # create_function()

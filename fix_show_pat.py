@@ -1,10 +1,12 @@
+import sys
+
 from bowler import Query
 from bowler.types import LN, Capture, Filename
 
 from fissix.pygram import python_symbols
 from fissix.pytree import type_repr, Node, Leaf
 from fissix.pgen2 import token
-from fissix.fixer_util import Name, LParen, RParen, find_indentation
+from fissix.fixer_util import Name, LParen, RParen, find_indentation, touch_import
 
 from typing import Optional, List
 
@@ -160,7 +162,7 @@ def split_dedent_trails(prefix, indent):
     #     if part.startswith(indent)
 
     # for post_index, part in enumerate(parts[:-1]):
-    #     # If empty string, then we could still be part of the 
+    #     # If empty string, then we could still be part of the
     #     if not part:
     #         continue
 
@@ -223,8 +225,8 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
     if suite.children[-2].type == python_symbols.funcdef:
         last_func_dedent_node = suite.children[-2].children[-1].children[-1]
 
-    if "path.py" in filename:
-        breakpoint()
+    # if "path.py" in filename:
+    #     breakpoint()
 
     trail_node.prefix = ""
     last_func_dedent_node.prefix = "\n" + indent
@@ -235,7 +237,7 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
     kludge_dedent = kludge_node.children[-1].children[-1]
     kludge_dedent.prefix = post
     # breakpoint()
-
+    touch_import("libtbx.utils", "kludge_show_to_repr")
     # create_function()
     # breakpoint()
 
@@ -295,11 +297,12 @@ classdef< 'class' any+ ':'
 
 
 def main():
+    do_write = "--do" in sys.argv
     (
         Query()
         .select(PATTERN)
         .filter(do_filter)
         .modify(process_class)
-        .execute(interactive=False, write=False, silent=False)
+        .execute(interactive=False, write=do_write, silent=False)
     )
 

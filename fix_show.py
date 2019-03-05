@@ -6,7 +6,7 @@ Finds classes with a show() but no __str__, and adds the method.
 Requires the 'bowler' python library.
 
 Usage:
-    $ bowler run fix_show.py [--do]
+    $ bowler run fix_show.py [-- [--do] [--silent]]
 
 Options:
     --do    Rewrite the destination files
@@ -234,10 +234,11 @@ classdef< 'class' any+ ':'
 
 def main():
     do_write = "--do" in sys.argv
+    do_silent = "--silent" in sys.argv
     (
         Query()
         .select(PATTERN)
         .filter(do_filter)
         .modify(process_class)
-        .execute(interactive=False, write=do_write, silent=False)
+        .execute(interactive=False, write=do_write, silent=do_silent)
     )

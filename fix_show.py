@@ -148,8 +148,6 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
 
     # Work out if we have any trailing text/comments that need to be moved
     trail_node = get_trailing_text_node(suite)
-    if "table_utils" in filename:
-        breakpoint()
     pre, post = split_suffix(trail_node)
 
     # post = trail_node.prefix
@@ -197,9 +195,6 @@ def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
     if "__repr__" in func_names:
         print("__repr__ show(): {}:{}".format(filename, node.get_lineno()))
         return False
-
-    if "table_utils.py" in filename:
-        return True
 
     # If we don't inherit from object directly we could already have a __str__ inherited
     class_parents = []

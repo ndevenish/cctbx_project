@@ -208,7 +208,8 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
     # Work out if we have any trailing text/comments that need to be split
     trail_node = get_trailing_text_node(suite)
     # if trail_node:
-    pre, post = split_dedent_trails(trail_node.prefix, indent)
+    # pre, post = split_dedent_trails(trail_node.prefix, indent)
+    post = trail_node.prefix
     # trail_node.prefix = pre
     # else:
     #     pre, post = "",""
@@ -225,7 +226,8 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
     if "path.py" in filename:
         breakpoint()
 
-    last_func_dedent_node.prefix = pre + "\n" + indent
+    trail_node.prefix = ""
+    last_func_dedent_node.prefix = "\n" + indent
     # trail_node.prefix = pre+"\n"+indent
     suite.children.insert(-1, kludge_node)
     # Get the kludge dedent

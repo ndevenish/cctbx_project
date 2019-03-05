@@ -108,6 +108,25 @@ def get_trailing_text_node(node: Node) -> Leaf:
             return tail
     return first
 
+def split_suffix(leaf):
+    indent = find_indentation(leaf)
+    parts = leaf.prefix.split("\n")
+    pre = []
+    for part in parts:
+        if not part.startswith(indent):
+            break
+        pre.append(part)
+    # Insert \n at the beginning of everything
+    parts = [parts[0]] + ["\n"+x for x in parts[1:]]
+    pre, post = "".join(parts[:len(pre)]), "".join(parts[len(pre):])
+
+    # If we have a pre but no newline, add/move one from post
+    if pre and not pre.rstrip(" ").endswith("\n"):
+        pre = pre + "\n"
+        if post.startswith("\n"):
+            post = post[1:]
+    return pre, post
+
 
 def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN]:
     """Do the processing/modification of the class node"""
@@ -120,7 +139,7 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
     # To avoid having to work out indent correction, just generate with correct
     kludge_node = get_child(
         driver.parse_string(
-            "def __str__(self):\n{0}{0}return kludge_show_to_str(self)\n\n".format(
+            "def __str__(self):\n{0}  return kludge_show_to_str(self)\n\n".format(
                 indent
             )
         ),
@@ -129,15 +148,18 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
 
     # Work out if we have any trailing text/comments that need to be moved
     trail_node = get_trailing_text_node(suite)
-    post = trail_node.prefix
+    if "table_utils" in filename:
+        breakpoint()
+    pre, post = split_suffix(trail_node)
+
+    # post = trail_node.prefix
 
     # if "maptbx" in filename and node.children[1].value == "spherical_variance_around_point":
     #     breakpoint()
-    if "table_utils.py" in filename:
-        breakpoint()
+
 
     # The contents of this node will be moved
-    trail_node.prefix = ""
+    trail_node.prefix = pre
 
     # Get the dedent node at the end of the previous - suite always ends with dedent
     # This is the dedent before the end of the suite, so the one to alter for the new
@@ -150,7 +172,7 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
     # children[-1] is the dedent at the end of the function's suite
     if suite.children[-2].type == python_symbols.funcdef:
         last_func_dedent_node = suite.children[-2].children[-1].children[-1]
-        last_func_dedent_node.prefix = "\n" + indent
+        last_func_dedent_node.prefix += "\n" + indent
 
     suite.children.insert(-1, kludge_node)
 
@@ -162,7 +184,6 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
 
 def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
     """Filter out potential matches that don't qualify"""
-
     suite = get_child(node, python_symbols.suite)
     func_names = [
         x.children[1].value for x in get_children(suite, python_symbols.funcdef)
@@ -176,6 +197,9 @@ def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
     if "__repr__" in func_names:
         print("__repr__ show(): {}:{}".format(filename, node.get_lineno()))
         return False
+
+    if "table_utils.py" in filename:
+        return True
 
     # If we don't inherit from object directly we could already have a __str__ inherited
     class_parents = []

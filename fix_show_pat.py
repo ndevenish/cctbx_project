@@ -200,7 +200,7 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
 
     kludge_node = get_child(
         driver.parse_string(
-            "def __str__(self):\n{0}{0}return kludge_show_to_repr(self)\n\n".format(
+            "def __str__(self):\n{0}{0}return kludge_show_to_str(self)\n\n".format(
                 indent
             )
         ),
@@ -237,7 +237,7 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
     kludge_dedent = kludge_node.children[-1].children[-1]
     kludge_dedent.prefix = post
     # breakpoint()
-    touch_import("libtbx.utils", "kludge_show_to_repr", node)
+    touch_import("libtbx.utils", "kludge_show_to_str", node)
     # create_function()
     # breakpoint()
 

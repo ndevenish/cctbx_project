@@ -237,7 +237,7 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
     kludge_dedent = kludge_node.children[-1].children[-1]
     kludge_dedent.prefix = post
     # breakpoint()
-    touch_import("libtbx.utils", "kludge_show_to_repr")
+    touch_import("libtbx.utils", "kludge_show_to_repr", node)
     # create_function()
     # breakpoint()
 

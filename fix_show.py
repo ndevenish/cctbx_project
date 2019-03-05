@@ -151,7 +151,8 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
     pre, post = split_suffix(trail_node)
 
     # post = trail_node.prefix
-
+    # if "energies_geom.py" in filename:
+    #     breakpoint()
     # if "maptbx" in filename and node.children[1].value == "spherical_variance_around_point":
     #     breakpoint()
 
@@ -182,6 +183,8 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
 
 def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
     """Filter out potential matches that don't qualify"""
+    # if "energies_geom.py" in filename:
+    #     breakpoint()
     suite = get_child(node, python_symbols.suite)
     func_names = [
         x.children[1].value for x in get_children(suite, python_symbols.funcdef)
@@ -201,10 +204,11 @@ def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
     if len(node.children) == 7:
         if node.children[3].type == python_symbols.arglist:
             class_parents = get_child(node, python_symbols.arglist).children
-        elif node.children[3].type == token.NAME:
+        elif node.children[3].type in {token.NAME, python_symbols.power}:
             class_parents = [node.children[3]]
         else:
-            raise RuntimeError("Unexpected node type")
+            raise RuntimeError("Unexpected node type in class argument: {}".format(type_repr(node.children[3].type)))
+
     if class_parents:
         parent_list = {
             str(x).strip() for x in class_parents if not x.type == token.COMMA

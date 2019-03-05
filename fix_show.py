@@ -131,6 +131,12 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
     trail_node = get_trailing_text_node(suite)
     post = trail_node.prefix
 
+    if "maptbx" in filename and node.children[1].value == "spherical_variance_around_point":
+        breakpoint()
+
+    # The contents of this node will be moved
+    trail_node.prefix = ""
+
     # Get the dedent node at the end of the previous - suite always ends with dedent
     # This is the dedent before the end of the suite, so the one to alter for the new
     # function
@@ -144,7 +150,6 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
         last_func_dedent_node = suite.children[-2].children[-1].children[-1]
         last_func_dedent_node.prefix = "\n" + indent
 
-    trail_node.prefix = ""
     suite.children.insert(-1, kludge_node)
 
     # Get the kludge dedent - now the last dedent

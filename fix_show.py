@@ -1,21 +1,41 @@
 #!/usr/bin/env python3
 
+"""
+Finds classes with a show() but no __str__, and adds the method.
+
+Requires the 'bowler' python library.
+
+Usage:
+    $ bowler run fix_show.py [--do]
+
+Options:
+    --do    Rewrite the destination files
+"""
+
 import sys
+
 from bowler import Query
-from fissix.pytree import type_repr, Node, Leaf
+from bowler.types import LN, Capture, Filename
+
 from fissix.pygram import python_symbols
-from fissix.pgen2 import token  # token.COMMA
+from fissix.pytree import type_repr, Node, Leaf
+from fissix.pgen2 import token
+from fissix.fixer_util import Name, LParen, RParen, find_indentation, touch_import
 
-from fissix.refactor import RefactoringTool
-from fissix.fixer_base import BaseFix
-
-# from lib2to3.fixer_base import BaseFix
-# from lib2to3.fixer_util import Leaf
-# from lib2to3.pgen2 import token
+from typing import Optional, List
 
 
-# from fissix.pytree import type_repr, Node
-def print_node(node, max_depth=1000, indent="", last=True):
+import fissix.pygram
+import fissix.pgen2
+import fissix.pytree
+
+# Build a driver to help generate nodes from known code
+driver = fissix.pgen2.driver.Driver(
+    fissix.pygram.python_grammar, convert=fissix.pytree.convert
+)
+
+
+def print_node(node: LN, max_depth: int = 1000, indent: str = "", last: bool = True):
     """Debugging function to print node tree"""
     if last:
         first_i = "└─"
@@ -31,8 +51,19 @@ def print_node(node, max_depth=1000, indent="", last=True):
                 type_repr(node.type), repr(node.prefix), repr(node.get_suffix())
             )
         )
+    elif type(node) is Leaf:
+        print(
+            indent
+            + first_i
+            + "Leaf({}, {}, col={}{})".format(
+                token.tok_name[node.type],
+                repr(node.value),
+                node.column,
+                ", prefix={}".format(repr(node.prefix)) if node.prefix else "",
+            )
+        )
     else:
-        print(indent + first_i + repr(node))
+        raise RuntimeError("Unknown node type")
     indent = indent + second_i
 
     children = list(node.children)
@@ -48,149 +79,137 @@ def print_node(node, max_depth=1000, indent="", last=True):
             )
 
 
-def get_child(node, childtype):
+def get_child(node: Node, childtype: int) -> Optional[LN]:
+    """Extract a single child from a node by type."""
     filt = [x for x in node.children if x.type == childtype]
     assert len(filt) <= 1
     return filt[0] if filt else None
 
 
-def get_children(node, childtype):
+def get_children(node: Node, childtype: int) -> List[LN]:
+    """Extract all children from a node that match a type"""
     return [x for x in node.children if x.type == childtype]
 
 
-# class ShowFixer(BaseFix):
-#     PATTERN = """classdef<any*>"""
+def get_trailing_text_node(node: Node) -> Leaf:
+    """
+    Find the dedent subnode containing any trailing text.
 
-#     def transform(self, node, results):
-#         print_node(node)
+    If there are none, return the first.
+    """
+    # trails = []
+    first = None
+    for tail in reversed(list(node.leaves())):
+        if not tail.type == token.DEDENT:
+            break
+        if first is None:
+            first = tail
+        if tail.prefix:
+            return tail
+    return first
 
 
-def test_modify(node, capture, filename):
-    print_node(node)
-    # breakpoint()
-    # import pdb
-    # pdb.set_trace()
+def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN]:
+    """Do the processing/modification of the class node"""
+    print("show(): {}:{}".format(filename, node.get_lineno()))
+    suite = get_child(node, python_symbols.suite)
 
+    # Get the suite indent
+    indent = find_indentation(suite)
 
-def modify_show(node, capture, filename):
-    if "postrefinement_legacy_rs.py" in filename:
-        breakpoint()
-
-    print("{}:{}".format(filename, node.get_lineno()))
-    print_node(node,1)
-    # breakpoint()
-    if not node.type == python_symbols.funcdef:
-        return
-    # Step up to get the class
-    classdef = node.parent.parent
-    class_suite = node.parent
-    if not node.parent.parent.type == python_symbols.classdef:
-        if node.parent.parent.type == python_symbols.funcdef:
-            print(
-                "show() method at {}:{} belongs to function".format(
-                    filename, node.get_lineno()
-                )
+    # To avoid having to work out indent correction, just generate with correct
+    kludge_node = get_child(
+        driver.parse_string(
+            "def __str__(self):\n{0}{0}return kludge_show_to_str(self)\n\n".format(
+                indent
             )
-            return
-        else:
-            print("Unexpected node")
-            breakpoint()
-            return
+        ),
+        python_symbols.funcdef,
+    )
 
-    # Get a list of all functions
-    # funcs = [x for x in classdef[-1].children if type_repr(x.type) == "funcdef"]
+    # Work out if we have any trailing text/comments that need to be moved
+    trail_node = get_trailing_text_node(suite)
+    post = trail_node.prefix
 
-    # Look on the suite for functions
-    # funcs = [x for x in classdef.children[-1].children if x.type == python_symbols.funcdef]
+    # Get the dedent node at the end of the previous - suite always ends with dedent
+    # This is the dedent before the end of the suite, so the one to alter for the new
+    # function
+    # If we aren't after a suite then we don't have a DEDENT so don't need to
+    # correct the indentation.
+    #
+    # children[-2] is the last statement at the end of the suite
+    # children[-1] is the suite on a function definition
+    # children[-1] is the dedent at the end of the function's suite
+    if suite.children[-2].type == python_symbols.funcdef:
+        last_func_dedent_node = suite.children[-2].children[-1].children[-1]
+        last_func_dedent_node.prefix = "\n" + indent
+
+    trail_node.prefix = ""
+    suite.children.insert(-1, kludge_node)
+
+    # Get the kludge dedent - now the last dedent
+    kludge_dedent = kludge_node.children[-1].children[-1]
+    kludge_dedent.prefix = post
+    touch_import("libtbx.utils", "kludge_show_to_str", node)
+
+
+def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
+    """Filter out potential matches that don't qualify"""
+    if "table_utils.py" in filename:
+        return True
+
+    suite = get_child(node, python_symbols.suite)
     func_names = [
-        x.children[1].value for x in get_children(class_suite, python_symbols.funcdef)
+        x.children[1].value for x in get_children(suite, python_symbols.funcdef)
     ]
 
     # If we already have a __str__ method, then skip this
     if "__str__" in func_names:
-        print(
-            "show() method at {}:{} belongs to class with existing __str__".format(
-                filename, node.get_lineno()
-            )
-        )
-        return
+        print("__str__ show(): {}:{}".format(filename, node.get_lineno()))
+        return False
 
     if "__repr__" in func_names:
-        print(
-            "show() method at {}:{} belongs to class with existing __repr__".format(
-                filename, node.get_lineno()
-            )
-        )
-        return
+        print("__repr__ show(): {}:{}".format(filename, node.get_lineno()))
+        return False
 
     # If we don't inherit from object directly we could already have a __str__ inherited
-    class_parents = get_child(classdef, python_symbols.arglist)
-    if class_parents and not {
-        str(x).strip() for x in class_parents.children if not x.type == token.COMMA
-    } == {"object"}:
-        print(
-            "show() method for class {} ({}:{}) not directly from object".format(
-                classdef.children[1].value, filename, classdef.get_lineno()
+    class_parents = []
+    if len(node.children) == 7:
+        if node.children[3].type == python_symbols.arglist:
+            class_parents = get_child(node, python_symbols.arglist).children
+        elif node.children[3].type == token.NAME:
+            class_parents = [node.children[3]]
+        else:
+            raise RuntimeError("Unexpected node type")
+    if class_parents:
+        parent_list = {
+            str(x).strip() for x in class_parents if not x.type == token.COMMA
+        }
+        if not parent_list == {"object"}:
+            print(
+                "classbase show(): {}:{} ({})".format(
+                    filename, node.get_lineno(), parent_list
+                )
             )
-        )
-        return
+            return False
 
-    # We definitely have a show() function that belongs to a class without __str__
-    def_def = "".join([str(x) for x in node.children[:-1]])
-    print(
-        "{}:{} {}::{}".format(
-            filename,
-            node.get_lineno(),
-            classdef.children[1].value,
-            "".join([str(x) for x in node.children[1:-1]]).lstrip(),
-        )
-    )
-    # breakpoint()
+    return True
 
 
-class FixShowMethods(BaseFix):
-    def match(self, node):
-        print("DEBUG:Passed node ", node)
-        return node.type == python_symbols.funcdef and node.children[1].value == "show"
-        # if not node.type == python_symbols.funcdef:
-        #     return False
-        # breakpoint()
-
-        # return is_funcdef and is_called_show
-
-    def transform(self, node, results):
-        print("DEBUG:    Parsing node", repr(node))
-        breakpoint()
-
-
-def apply(query):
-    (
-        # query.select_root()
-        query.select_method("show")
-        .modify(modify_show)
-        .execute(silent=False, write=False)
-    )
+PATTERN = """
+classdef< 'class' any+ ':'
+              suite< any*
+                     funcdef< 'def' name='show' any+ >
+                     any* > >
+"""
 
 
 def main():
-    """Run by bowler inline"""
-    apply(Query())
-
-
-# class ShowRefactorer(RefactoringTool):
-#     def get_fixers(self):
-#         fixers = [f(self.options, self.fixer_log) for f in self.fixers]
-#         pre = [f for f in fixers if f.order == "pre"]
-#         post = [f for f in fixers if f.order == "post"]
-#         return pre, post
-
-if __name__ == "__main__":
-    path = sys.argv[1]
-    apply(Query(path))
-
-    # ref = ShowRefactorer([FixShowMethods])
-    # filename = "tst_print.py"
-    # with open(filename) as f:
-    #     text = f.read()
-    # breakpoint()
-    # ref.refactor_string(text, filename)
+    do_write = "--do" in sys.argv
+    (
+        Query()
+        .select(PATTERN)
+        .filter(do_filter)
+        .modify(process_class)
+        .execute(interactive=False, write=do_write, silent=False)
+    )

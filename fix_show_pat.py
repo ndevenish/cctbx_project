@@ -39,9 +39,10 @@ def print_node(node: LN, max_depth: int = 1000, indent: str = "", last: bool = T
         print(
             indent
             + first_i
-            + "Leaf({}, {}{})".format(
+            + "Leaf({}, {}, col={}{})".format(
                 token.tok_name[node.type],
                 repr(node.value),
+                node.column,
                 ", prefix={}".format(repr(node.prefix)) if node.prefix else "",
             )
         )
@@ -121,36 +122,52 @@ def get_children(node: Node, childtype: int) -> List[LN]:
 
 
 def get_trailing_text_node(node):
-    "Find the dedent node containing any trailing text"
+    """
+    Find the dedent node containing any trailing text.
+
+    If there are none, return the first.
+    """
     # trails = []
+    first = None
     for tail in reversed(list(node.leaves())):
         if not tail.type == token.DEDENT:
             break
+        if first is None:
+            first = tail
         if tail.prefix:
             return tail
+    return first
     #   trails.insert(0, tail)
     # return "".join(x.prefix for x in trails)
 
 
 def split_dedent_trails(prefix, indent):
     "Using the previous indent level, splits text pre-and-post indent"
+    # parts = prefix.split("\n")
+    # parts = [parts[0]] + ["\n" + x for x in parts[1:]]
+    # # parts = [x + "\n" for x in parts[:-1]] + [parts[-1]]
+    # pre = []
+    # for i, part in enumerate(parts):
+    #     if part.strip() and not (part.startswith(indent) or part.startswith("\n"+indent)):
+    #         break
+    # else:
+    #     i += 1
+    # return "".join(parts[:i]), "".join(parts[i:])
     parts = prefix.split("\n")
-    parts = [parts[0]] + ["\n" + x for x in parts[1:]]
-    # parts = [x + "\n" for x in parts[:-1]] + [parts[-1]]
-    pre = []
-    for i, part in enumerate(parts):
-        if part.strip() and not (part.startswith(indent) or part.startswith("\n"+indent)):
-            break
-    else:
-        i += 1
-    return "".join(parts[:i]), "".join(parts[i:])
-
+    return "\n".join(parts[:-1]), "\n"+parts[-1]
+    # next_indent = parts[-1]
+    # pre = ""
+    # for i, part in enumerate(parts):
+    #     if i == 0:
+    #         pre += part
+    #     else:
+    #         pre += "\n" + part
 
 def test_split_dedent_trails():
     assert split_dedent_trails("some", "  ") == ("", "some")
     assert split_dedent_trails("\nsome", "  ") == ("", "\nsome")
-    breakpoint()
     assert split_dedent_trails("\n  some", "  ") == ("\n  some", "")
+    assert split_dedent_trails("","  ") == ("","")
 
 
 def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN]:
@@ -173,20 +190,24 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
 
     # Work out if we have any trailing text/comments that need to be split
     trail_node = get_trailing_text_node(suite)
-    if trail_node:
-        pre, post = split_dedent_trails(trail_node.prefix, indent)
-        trail_node.prefix = pre
-    else:
-        pre, post = "",""
+    # if trail_node:
+    pre, post = split_dedent_trails(trail_node.prefix, indent)
+    # trail_node.prefix = pre
+    # else:
+    #     pre, post = "",""
 
     # Get the dedent node at the end of the previous - suite always ends with dedent
     # children[-2] is the last statement at the end of the suite
     # children[-1] is the suite on a function definition
     # children[-1] is the dedent at the end of the function's suite
-    dedent_node = suite.children[-2].children[-1].children[-1]
-    old_dedent = dedent_node.prefix
-    assert dedent_node.type == token.DEDENT
-    dedent_node.prefix = "\n" + indent
+    # dedent_node = suite.children[-2].children[-1].children[-1]
+    # if not dedent_node.prefix and trail_node:
+    #     breakpoint()
+    #     dedent_node = trail_node
+    # old_dedent = dedent_node.prefix
+    # assert dedent_node.type == token.DEDENT
+    # dedent_node.prefix = "\n" + indent
+    trail_node.prefix = pre+"\n"+indent
     suite.children.insert(-1, kludge_node)
     # Get the kludge dedent
     # breakpoint()
@@ -204,7 +225,7 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
 def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
     """Filter out potential matches that don't qualify"""
     if "table_utils.py" in filename:
-        breakpoint()
+        return True
 
     suite = get_child(node, python_symbols.suite)
     func_names = [

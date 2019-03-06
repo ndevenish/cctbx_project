@@ -455,7 +455,7 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
     else:
         touch_import("six.moves", "StringIO", node)
 
-_unique_attempts = {}
+_unique_attempts = set()
 
 def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
     """Filter out potential matches that don't qualify"""

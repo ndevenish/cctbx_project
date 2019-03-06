@@ -9,8 +9,20 @@ Usage:
     $ bowler run fix_show.py [-- [--do] [--silent]]
 
 Options:
-    --do    Rewrite the destination files
+    --do        Rewrite the destination files
+    --silent    Don't print out diffs
 """
+
+# Implementation:
+# ##############
+#
+# Finding of prospective nodes is done at the bottom of the file using
+# bowler's `Query` method.
+#
+# This calls the function `do_filter` for each prospective node, for
+# early rejection. Anything that passes this test gets rewritten.
+#
+# The actual rewriting of the AST happens in `process_class`.
 
 import sys
 import itertools
@@ -21,9 +33,9 @@ from bowler.types import LN, Capture, Filename
 from fissix.pygram import python_symbols
 from fissix.pytree import type_repr, Node, Leaf
 from fissix.pgen2 import token
-from fissix.fixer_util import Name, LParen, RParen, find_indentation, touch_import
+from fissix.fixer_util import find_indentation, touch_import
 
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Collection, Callable, Any
 
 
 import fissix.pygram
@@ -134,11 +146,13 @@ def get_print_file(node: Node) -> Optional[LN]:
                     return arg_val
         else:
             return None
-    else:
-        raise RuntimeError("Unknown print statement type?")
+
+    raise RuntimeError("Unknown print statement type?")
 
 
 class UnableToTransformError(Exception):
+    """Thrown when a node doesn't qualify for transformation for some reason"""
+
     pass
 
 
@@ -155,9 +169,8 @@ def analyse_show(node: Node, filename: Filename) -> Optional[str]:
     Raises:
         UnableToTransformError: Function is too complicated to analyse
     """
+    # Generate an ID for unique output
     showID = "{}:{}".format(filename, node.get_lineno())
-    # if "cctbx/crystal/__init__.py" in filename:
-    #     breakpoint()
     # Find calls to print in here
     # Firstly, print statements
     print_calls = get_children(node, python_symbols.print_stmt, recursive=True)
@@ -173,6 +186,7 @@ def analyse_show(node: Node, filename: Filename) -> Optional[str]:
     if not print_calls:
         raise UnableToTransformError("Could not find any output calls")
 
+    # Get the node referring to every file that print writes to
     dest_file_nodes = [get_print_file(x) for x in print_calls]
     dest_file_vals = {
         str(x).strip() if x is not None else None for x in dest_file_nodes
@@ -194,6 +208,7 @@ def analyse_show(node: Node, filename: Filename) -> Optional[str]:
     if output_name is None:
         print("PASS: {}: Writes to stdout only".format(showID))
     else:
+        # Sort into required, optional function parameters
         params = _get_function_arguments(node)
         without_default = {
             name for name, _, _ in itertools.takewhile(lambda x: not x[1], params[1:])
@@ -234,11 +249,30 @@ def analyse_show(node: Node, filename: Filename) -> Optional[str]:
     return output_name
 
 
-def split_list_on(collection, condition):
+def split_list_on(
+    collection: Collection, predicate: Callable[[Any], bool]
+) -> List[List]:
+    """
+    Splits a list into parts based on a predicate.
+
+    This is the equivalent of str.split() but uses a function to
+    determine if something is a split of not. Trailing split conditions
+    will result in a trailing empty list.
+
+    Arguments:
+        collection: The input collection to split
+        predicate:
+            A callable function, called on each item, that returns True
+            if the item should be used to split the list.
+
+    Returns:
+        A list with aa sublist for every part of the input that was
+        divided by a splitter.
+    """
     entries = []
-    current_entry = []
+    current_entry: List[Any] = []
     for i, item in enumerate(collection):
-        if condition(item):
+        if predicate(item):
             entries.append(current_entry)
             current_entry = []
             # If at the end, then we need to append an empty list
@@ -260,10 +294,18 @@ def test_split_list_on():
     ]
 
 
-def _split_arglist(node: Node):
-    """Splits a typedarglist into separate data"""
+def _split_arglist(node: Node) -> List[Tuple[str, bool, Optional[LN]]]:
+    """Splits a arglist into separate data.
+
+    Arguments:
+        node: A python_symbols.argument or python_symbols.arglist node
+
+    Returns:
+        A list of separate parameters and information about it's default
+        value, in the form (name, has_default, default)
+    """
     if node.type == python_symbols.argument:
-        return [_handle_argument(node)]
+        return [_extract_argument(node)]
 
     assert node.type == python_symbols.arglist
     entries = split_list_on(node.children, lambda x: x.type == token.COMMA)
@@ -278,10 +320,18 @@ def _split_arglist(node: Node):
             converted.append((str(entry).strip(), False, None))
 
     return converted
-    # return entries
 
 
-def _extract_argument(node):
+def _extract_argument(node: Node) -> Tuple[str, bool, Optional[LN]]:
+    """Handle a single argument node.
+
+    Arguments:
+        node: A Node with type argument
+
+    Returns:
+        A list of separate parameters and information about it's default
+        value, in the form (name, has_default, default)
+    """
     assert node.type == python_symbols.argument
     if node.children[1].type == token.EQUAL:
         return (node.children[0].value, True, node.children[2])
@@ -289,22 +339,17 @@ def _extract_argument(node):
         return (str(node).strip(), False, None)
 
 
-def _split_typedargslist(node: Node):
-    """Splits a typedarglist into separate data"""
+def _split_typedargslist(node: Node) -> List[Tuple[str, bool, Optional[LN]]]:
+    """Splits a typedargslist into separate data.
+
+    Arguments:
+        node: A python_symbols.typedargslist type Node
+
+    Returns:
+        A list of separate parameters and information about it's default
+        value, in the form (name, has_default, default)
+    """
     assert node.type == python_symbols.typedargslist
-    # entries = []
-    # index = 0
-    # current_entry = []
-    # while index < len(node.children):
-    #     part = node.children[index]
-    #     if part.type == token.COMMA:
-    #         entries.append(current_entry)
-    #         current_entry = []
-    #     else:
-    #         current_entry.append(part)
-    #     index += 1
-    # if current_entry:
-    #     entries.append(current_entry)
     entries = split_list_on(node.children, lambda x: x.type == token.COMMA)
 
     converted = []
@@ -319,10 +364,9 @@ def _split_typedargslist(node: Node):
                 "Don't understand typedarglist parameter {}".format(entry)
             )
     return converted
-    # return entries
 
 
-def _get_function_arguments(node):
+def _get_function_arguments(node: Node) -> List[Tuple[str, bool, Optional[LN]]]:
     """
     Returns:
         (name, has_default, default)
@@ -392,35 +436,23 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
     indent = find_indentation(suite)
 
     # Find the show() function
-    # breakpoint()
     funcs = {
         x.children[1].value: x for x in get_children(suite, python_symbols.funcdef)
     }
     show_func = funcs["show"]
+    # Get the name of the filename object keyword that this show uses
     show_keyword = analyse_show(show_func, filename)
 
     if show_keyword is None:
-        # Use the stdout replacement method
+        # show() writes to stdout. Use Graeme's method for now.
         kludge_text = "def __str__(self):\n{0}  return kludge_show_to_str(self)\n\n".format(
             indent
         )
     else:
+        # We can more intelligently call show
         kludge_text = "def __str__(self):\n{0}  out = StringIO()\n{0}  self.show({1}=out)\n{0}  return out.getvalue.rstrip()\n\n".format(
             indent, show_keyword
         )
-    # from six.moves import cStringIO as StringIO
-
-    #   out = StringIO()
-
-    #   stdout = sys.stdout
-    #   sys.stdout = out
-
-    #   try:
-    #     obj.show()
-    #   finally:
-    #     sys.stdout = stdout
-
-    #   return out.getvalue().rstrip()
 
     # To avoid having to work out indent correction, just generate with correct
     kludge_node = get_child(driver.parse_string(kludge_text), python_symbols.funcdef)
@@ -449,17 +481,25 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
     # Get the kludge dedent - now the last dedent
     kludge_dedent = kludge_node.children[-1].children[-1]
     kludge_dedent.prefix = post
+
     # Make sure the functions used are available
     if show_keyword is None:
         touch_import("libtbx.utils", "kludge_show_to_str", node)
     else:
         touch_import("six.moves", "StringIO", node)
 
+
+# Store a list of ids to ensure we don't process anything more than
+# once. Normally we'd want this because bowler doesn't know that our
+# changes aren't recursive, but we want to accurately count what's
+# going on
 _unique_attempts = set()
+
 
 def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
     """Filter out potential matches that don't qualify"""
 
+    # Make sure we don't process any class more than once
     classID = "{}:{}".format(filename, node.get_lineno())
     if classID in _unique_attempts:
         print("DUPLICATE_PARSE", classID)
@@ -467,8 +507,7 @@ def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
     else:
         _unique_attempts.add(classID)
 
-    # if "energies_geom.py" in filename:
-    #     breakpoint()
+    # Print an explicit marker that we're starting
     print("FILTERING {}:{}".format(filename, node.get_lineno()))
     suite = get_child(node, python_symbols.suite)
     func_names = [
@@ -477,12 +516,20 @@ def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
 
     # If we already have a __str__ method, then skip this
     if "__str__" in func_names:
-        print("ERROR:bowler.myfilter: __str__ show(): {}:{}".format(filename, node.get_lineno()))
+        print(
+            "ERROR:bowler.myfilter: __str__ show(): {}:{}".format(
+                filename, node.get_lineno()
+            )
+        )
         # raise UnableToTransformError("Has __str__ function already")
         return False
 
     if "__repr__" in func_names:
-        print("ERROR:bowler.myfilter: __repr__ show(): {}:{}".format(filename, node.get_lineno()))
+        print(
+            "ERROR:bowler.myfilter: __repr__ show(): {}:{}".format(
+                filename, node.get_lineno()
+            )
+        )
         return False
 
     # If we don't inherit from object directly we could already have a __str__ inherited
@@ -524,6 +571,8 @@ classdef< 'class' any+ ':'
 
 
 def main():
+    """Runs the query. Called by bowler if run as a script"""
+
     do_write = "--do" in sys.argv
     do_silent = "--silent" in sys.argv
     (

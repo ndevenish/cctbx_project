@@ -467,11 +467,12 @@ def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
 
     # If we already have a __str__ method, then skip this
     if "__str__" in func_names:
-        print("__str__ show(): {}:{}".format(filename, node.get_lineno()))
+        print("ERROR:bowler.myfilter: __str__ show(): {}:{}".format(filename, node.get_lineno()))
+        # raise UnableToTransformError("Has __str__ function already")
         return False
 
     if "__repr__" in func_names:
-        print("__repr__ show(): {}:{}".format(filename, node.get_lineno()))
+        print("ERROR:bowler.myfilter: __repr__ show(): {}:{}".format(filename, node.get_lineno()))
         return False
 
     # If we don't inherit from object directly we could already have a __str__ inherited
@@ -494,7 +495,7 @@ def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
         }
         if not parent_list == {"object"}:
             print(
-                "classbase show(): {}:{} ({})".format(
+                "ERROR:bowler.myfilter: Multiple non-object classbase show(): {}:{} ({})".format(
                     filename, node.get_lineno(), parent_list
                 )
             )

@@ -24,23 +24,19 @@ Options:
 #
 # The actual rewriting of the AST happens in `process_class`.
 
-import sys
 import itertools
+import sys
+from typing import Any, Callable, Collection, List, Optional, Tuple
 
+import fissix.pgen2
+import fissix.pygram
+import fissix.pytree
 from bowler import Query
 from bowler.types import LN, Capture, Filename
-
-from fissix.pygram import python_symbols
-from fissix.pytree import type_repr, Node, Leaf
-from fissix.pgen2 import token
 from fissix.fixer_util import find_indentation, touch_import
-
-from typing import Optional, List, Tuple, Collection, Callable, Any
-
-
-import fissix.pygram
-import fissix.pgen2
-import fissix.pytree
+from fissix.pgen2 import token
+from fissix.pygram import python_symbols
+from fissix.pytree import Leaf, Node, type_repr
 
 # Build a driver to help generate nodes from known code
 driver = fissix.pgen2.driver.Driver(

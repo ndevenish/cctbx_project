@@ -455,9 +455,18 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
     else:
         touch_import("six.moves", "StringIO", node)
 
+_unique_attempts = {}
 
 def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
     """Filter out potential matches that don't qualify"""
+
+    classID = "{}:{}".format(filename, node.get_lineno())
+    if classID in _unique_attempts:
+        print("DUPLICATE_PARSE", classID)
+        return False
+    else:
+        _unique_attempts.add(classID)
+
     # if "energies_geom.py" in filename:
     #     breakpoint()
     print("FILTERING {}:{}".format(filename, node.get_lineno()))

@@ -460,6 +460,7 @@ def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
     """Filter out potential matches that don't qualify"""
     # if "energies_geom.py" in filename:
     #     breakpoint()
+    print("FILTERING {}:{}".format(filename, node.get_lineno()))
     suite = get_child(node, python_symbols.suite)
     func_names = [
         x.children[1].value for x in get_children(suite, python_symbols.funcdef)
@@ -501,6 +502,7 @@ def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
             )
             return False
 
+    print("FILTERING_PASS {}:{}".format(filename, node.get_lineno()))
     return True
 
 

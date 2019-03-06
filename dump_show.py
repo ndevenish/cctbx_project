@@ -349,42 +349,6 @@ def _get_function_arguments(node):
     raise RuntimeError("Unknown configuration for python function parameters")
 
 
-# class FunctionParameters(object):
-#     def __init__(self, node, parent=None):
-#         assert node.type == python_symbols.parameters
-#         self.node = node
-#         self.parent = parent
-#         # Parse the items in the parameter list to find out what they are
-
-#     def __getitem__(self, name):
-#         # if isinstance(name, int):
-#         pass
-
-
-#     def __contains__(self, name):
-#         pass
-
-# class Function(object):
-#     """Represents a function definition"""
-
-#     def __init__(self, node):
-#         assert node.type == python_symbols.funcdef
-#         self.node = node
-#         self._parameters = FunctionParameters(node.children[2])
-
-#     @property
-#     def name(self):
-#         return self.node.children[1].value
-#     @name.setter
-#     def name(self, value):
-#         self.node.children[1].value = value
-
-#     @property
-#     def parameters(self):
-#         return self._parameters
-#         # return self.node.children[2]
-
-
 def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN]:
     """Do the processing/modification of the class node"""
     print("show(): {}:{}".format(filename, node.get_lineno()))

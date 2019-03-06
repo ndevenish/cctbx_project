@@ -113,7 +113,8 @@ def get_trailing_text_node(node: Node) -> Leaf:
             return tail
     return first
 
-def split_suffix(leaf : Leaf) -> Tuple[str,str]:
+
+def split_suffix(leaf: Leaf) -> Tuple[str, str]:
     """Split a suffix node (a DEDENT with prefix) into two.
 
     The indentation of the leaf is discovered so that comments that
@@ -127,8 +128,8 @@ def split_suffix(leaf : Leaf) -> Tuple[str,str]:
             break
         pre.append(part)
     # Insert \n at the beginning of everything
-    parts = [parts[0]] + ["\n"+x for x in parts[1:]]
-    pre, post = "".join(parts[:len(pre)]), "".join(parts[len(pre):])
+    parts = [parts[0]] + ["\n" + x for x in parts[1:]]
+    pre, post = "".join(parts[: len(pre)]), "".join(parts[len(pre) :])
 
     # If we have a pre but no newline, add/move one from post
     if pre and not pre.rstrip(" ").endswith("\n"):
@@ -210,7 +211,11 @@ def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
         elif node.children[3].type in {token.NAME, python_symbols.power}:
             class_parents = [node.children[3]]
         else:
-            raise RuntimeError("Unexpected node type in class argument: {}".format(type_repr(node.children[3].type)))
+            raise RuntimeError(
+                "Unexpected node type in class argument: {}".format(
+                    type_repr(node.children[3].type)
+                )
+            )
 
     if class_parents:
         parent_list = {

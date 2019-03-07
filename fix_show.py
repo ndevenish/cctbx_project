@@ -82,7 +82,7 @@ def print_node(node: LN, max_depth: int = 1000, indent: str = "", last: bool = T
 
     children = list(node.children)
     if max_depth == 0 and children:
-        print(indent + "└─...{} children".format(len(children)))
+        print(indent + f"└─...{len(children)} children")
     else:
         for i, child in enumerate(node.children):
             print_node(
@@ -178,7 +178,8 @@ def analyse_show(node: Node, filename: Filename) -> Optional[str]:
         UnableToTransformError: Function is too complicated to analyse
     """
     # Generate an ID for unique output
-    showID = "{}:{}".format(filename, node.get_lineno())
+    breakpoint()
+    showID = f"{filename}:{node.get_lineno()}"
     # Find calls to print in here
     # Firstly, print statements
     print_calls = get_children(node, python_symbols.print_stmt, recursive=True)
@@ -214,7 +215,7 @@ def analyse_show(node: Node, filename: Filename) -> Optional[str]:
 
     # If this single output is 'None' then we print to stdout
     if output_name is None:
-        print("PASS: {}: Writes to stdout only".format(showID))
+        print(f"PASS: {showID}: Writes to stdout only".format(showID))
     else:
         # Sort into required, optional function parameters
         params = _get_function_arguments(node)
@@ -229,15 +230,9 @@ def analyse_show(node: Node, filename: Filename) -> Optional[str]:
             # We have required parameters. Check that it's just the log stream parameter
             if not without_default == {output_name}:
                 raise UnableToTransformError(
-                    "Unexpected extra required parameter: {} vs writes to {}".format(
-                        without_default, output_name
-                    )
+                    f"Unexpected extra required parameter: {without_default} vs writes to {output_name}"
                 )
-            print(
-                "PASS: {}: Writes to required argument {}".format(
-                    showID, without_default & {output_name}
-                )
-            )
+            print(f"PASS: {showID}: Writes to required argument {output_name}")
         elif with_default:
             # We don't have any required parameters. Check that we pass the stream in as a keyword
             if not {output_name} <= with_default:
@@ -245,9 +240,7 @@ def analyse_show(node: Node, filename: Filename) -> Optional[str]:
                     "No function arguments match stream write destination"
                 )
             print(
-                "PASS: {}: Writes to keyword argument {} (of {})".format(
-                    showID, output_name, with_default
-                )
+                f"PASS: {showID}: Writes to keyword argument {output_name} (of {with_default})"
             )
         else:
             # breakpoint()
@@ -368,9 +361,7 @@ def _split_typedargslist(node: Node) -> List[Tuple[str, bool, Optional[LN]]]:
             assert entry[1].type == token.EQUAL
             converted.append((entry[0].value, True, entry[2]))
         else:
-            raise RuntimeError(
-                "Don't understand typedarglist parameter {}".format(entry)
-            )
+            raise RuntimeError(f"Don't understand typedarglist parameter {entry}")
     return converted
 
 
@@ -437,7 +428,7 @@ def split_suffix(leaf: Leaf) -> Tuple[str, str]:
 
 def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN]:
     """Do the processing/modification of the class node"""
-    print("Class for show(): {}:{}".format(filename, node.get_lineno()))
+    print(f"Class for show(): {filename}:{node.get_lineno()}")
 
     suite = get_child(node, python_symbols.suite)
     # Get the suite indent
@@ -453,13 +444,15 @@ def process_class(node: LN, capture: Capture, filename: Filename) -> Optional[LN
 
     if show_keyword is None:
         # show() writes to stdout. Use Graeme's method for now.
-        kludge_text = "def __str__(self):\n{0}  return kludge_show_to_str(self)\n\n".format(
-            indent
+        kludge_text = (
+            f"def __str__(self):\n{indent}  return kludge_show_to_str(self)\n\n"
         )
     else:
         # We can more intelligently call show
-        kludge_text = "def __str__(self):\n{0}  out = StringIO()\n{0}  self.show({1}=out)\n{0}  return out.getvalue.rstrip()\n\n".format(
-            indent, show_keyword
+        kludge_text = (
+            f"def __str__(self):\n{indent}  out = StringIO()\n"
+            f"{indent}  self.show({show_keyword}=out)\n"
+            f"{indent}  return out.getvalue.rstrip()\n\n"
         )
 
     # To avoid having to work out indent correction, just generate with correct
@@ -508,7 +501,7 @@ def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
     """Filter out potential matches that don't qualify"""
 
     # Make sure we don't process any class more than once
-    classID = "{}:{}".format(filename, node.get_lineno())
+    classID = f"{filename}:{node.get_lineno()}"
     if classID in _unique_attempts:
         print("DUPLICATE_PARSE", classID)
         return False
@@ -516,7 +509,7 @@ def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
         _unique_attempts.add(classID)
 
     # Print an explicit marker that we're starting
-    print("FILTERING {}:{}".format(filename, node.get_lineno()))
+    print(f"FILTERING {classID}")
     suite = get_child(node, python_symbols.suite)
     func_names = [
         x.children[1].value for x in get_children(suite, python_symbols.funcdef)
@@ -524,20 +517,11 @@ def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
 
     # If we already have a __str__ method, then skip this
     if "__str__" in func_names:
-        print(
-            "ERROR:bowler.myfilter: __str__ show(): {}:{}".format(
-                filename, node.get_lineno()
-            )
-        )
-        # raise UnableToTransformError("Has __str__ function already")
+        print(f"ERROR:bowler.myfilter: __str__ show(): {classID}")
         return False
 
     if "__repr__" in func_names:
-        print(
-            "ERROR:bowler.myfilter: __repr__ show(): {}:{}".format(
-                filename, node.get_lineno()
-            )
-        )
+        print(f"ERROR:bowler.myfilter: __repr__ show(): {classID}")
         return False
 
     # If we don't inherit from object directly we could already have a __str__ inherited
@@ -549,9 +533,7 @@ def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
             class_parents = [node.children[3]]
         else:
             raise RuntimeError(
-                "Unexpected node type in class argument: {}".format(
-                    type_repr(node.children[3].type)
-                )
+                f"Unexpected node type in class argument: {type_repr(node.children[3].type)}"
             )
 
     if class_parents:
@@ -560,13 +542,11 @@ def do_filter(node: LN, capture: Capture, filename: Filename) -> bool:
         }
         if not parent_list == {"object"}:
             print(
-                "ERROR:bowler.myfilter: Multiple non-object classbase show(): {}:{} ({})".format(
-                    filename, node.get_lineno(), parent_list
-                )
+                f"ERROR:bowler.myfilter: Multiple non-object classbase show(): {classID} ({parent_list})"
             )
             return False
 
-    print("FILTERING_PASS {}:{}".format(filename, node.get_lineno()))
+    print("FILTERING_PASS", classID)
     return True
 
 

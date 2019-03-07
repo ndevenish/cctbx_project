@@ -5,6 +5,7 @@ from libtbx import easy_pickle
 import hashlib
 import time
 import sys, os
+from six.moves import StringIO
 
 class node_info(object):
 
@@ -107,3 +108,8 @@ class target_db(object):
         print(attr+":", node.path, "mtime:", node.mtime,\
                                            "md5:", node.md5, file=out)
       print("-"*79, file=out)
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()

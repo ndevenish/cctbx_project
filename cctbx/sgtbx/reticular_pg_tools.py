@@ -14,6 +14,7 @@ from cctbx.sgtbx import cosets, sub_lattice_tools
 from scitbx import matrix
 from boost import rational
 from libtbx.math_utils import ifloor
+from libtbx.utils import kludge_show_to_str
 
 def as_hkl( op ):
   def row_as_hkl( row, txt=['h','k','l']):
@@ -105,6 +106,9 @@ class rat_rot_group(object):
   def show(self):
     for op in self.ops:
       print as_hkl( op.transpose() )
+
+  def __str__(self):
+    return kludge_show_to_str(self)
 
 
 

@@ -12,6 +12,7 @@ from libtbx import group_args, Auto
 from math import sqrt
 import cStringIO
 import sys
+from six.moves import StringIO
 
 citations_str = """\
   Diederichs K & Karplus PA (1997) Nature Structural Biology 4:269-275
@@ -919,6 +920,11 @@ class dataset_statistics(object):
     print >> out, ""
     print >> out, "NOTE: we recommend using all data out to the CC(1/2) limit"
     print >> out, "for refinement."
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 def select_data(file_name, data_labels, log=None,
     assume_shelx_observation_type_is=None, allow_amplitudes=None):

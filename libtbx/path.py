@@ -4,6 +4,7 @@ import locale
 import shutil
 import os
 import sys
+from six.moves import StringIO
 op = os.path
 
 def norm_join(*args):
@@ -489,6 +490,11 @@ class clean_out_directory(object):
         print("  %s" % file_name, file=out)
     if (self.n_bytes > 0):
       print("%s of disk space will be freed." % self.get_freed_space(), file=out)
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 # http://stackoverflow.com/questions/1392413/calculating-a-directory-size-using-python
 def directory_size(path):

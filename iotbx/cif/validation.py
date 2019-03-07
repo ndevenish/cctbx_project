@@ -9,6 +9,7 @@ import shutil
 import re
 import sys
 from urllib2 import urlopen
+from six.moves import StringIO
 
 
 class ErrorHandler:
@@ -58,6 +59,11 @@ class ErrorHandler:
         if str(e) not in printed_messages: # avoid printing duplicates
           printed_messages.add(str(e))
           print >> out, e
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 
 class ValidationError(Exception):

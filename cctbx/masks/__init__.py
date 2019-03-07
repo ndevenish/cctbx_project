@@ -1,5 +1,6 @@
 from __future__ import division
 import boost.python
+from six.moves import StringIO
 ext = boost.python.import_ext("cctbx_masks_ext")
 from cctbx_masks_ext import *
 
@@ -47,6 +48,11 @@ class vdw_radii:
     for symbol in symbols:
       print >> log, "%5.2f" %self.table[symbol],
     print >> log
+
+  def __str__(self):
+    out = StringIO()
+    self.show(log=out)
+    return out.getvalue.rstrip()
 
 
 class _(boost.python.injector, flood_fill):

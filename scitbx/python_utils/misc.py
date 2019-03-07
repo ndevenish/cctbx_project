@@ -1,5 +1,6 @@
 from __future__ import division
 import sys
+from six.moves import StringIO
 
 class store(object):
 
@@ -24,6 +25,11 @@ class sorted_store(object):
     if (f is None): f = sys.stdout
     for key in self.keys():
       print >> f, "%s%s:" % (indentation, key), getattr(self, key)
+
+  def __str__(self):
+    out = StringIO()
+    self.show(f=out)
+    return out.getvalue.rstrip()
 
 def get_caller_name(n_back=2):
   try: raise Exception

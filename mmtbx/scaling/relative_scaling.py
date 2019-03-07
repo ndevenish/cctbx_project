@@ -10,6 +10,7 @@ from scitbx.minimizers import newton_more_thuente_1994
 from scitbx import matrix
 import math
 import sys
+from six.moves import StringIO
 
 # 2009-04-15, cctbx svn rev. 8940:
 #   there are no unit tests for this module, but is is used by these commands:
@@ -295,6 +296,11 @@ class ls_rel_scale_driver(object):
     print >> out, "R-value before LS scaling  : %5.3f"%(self.r_val_before)
     print >> out, "R-value after LS scaling   : %5.3f"%(self.r_val_after)
     print >> out
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 
 

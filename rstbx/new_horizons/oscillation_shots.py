@@ -7,6 +7,7 @@ from labelit.dptbx.status import cellstr
 from libtbx.utils import Sorry
 from libtbx.test_utils import approx_equal
 from rstbx.dials_core.integration_core import show_observations
+from libtbx.utils import kludge_show_to_str
 
 class IntegrateCharacters:
   def __init__(self,Characters,process_dictionary,horizons_phil,files,spotfinder_results):
@@ -392,6 +393,9 @@ class IntegrateCharacters:
           print "Catch any problem with sublattice analysis & numpy masked arrays"
           return
 
+  def __str__(self):
+    return kludge_show_to_str(self)
+
 class limits_fix_engine:
   def __init__(self):
     pass
@@ -504,6 +508,9 @@ class ResLimitControl:
       self.current_limit /=  pow(self.subsequentVolumeFactor,1.0/3.0)
       if self.current_limit <= self.outer_limit: break
       yield self.current_limit
+
+  def __str__(self):
+    return kludge_show_to_str(self)
 
 from labelit.diffraction.stats_mtz import get_limits
 class ResolutionAnalysisMetaClass(get_limits):

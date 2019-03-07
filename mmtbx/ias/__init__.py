@@ -11,6 +11,7 @@ import iotbx.phil
 from cctbx import maptbx
 from libtbx.test_utils import approx_equal
 from libtbx.utils import Sorry
+from six.moves import StringIO
 
 ias_master_params = iotbx.phil.parse("""\
   b_iso_max = 100.0
@@ -102,6 +103,11 @@ class ias_counters(object):
     print >> out, "   ring centers:      ", self.n_ias_r
     print >> out, "   lone pairs:        ", self.n_ias_l
     assert self.n_ias == self.n_ias_b+self.n_ias_r+self.n_ias_l+self.n_ias_bh
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 class atom(object):
   def __init__(self, site_cart = None,

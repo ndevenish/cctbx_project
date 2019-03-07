@@ -6,6 +6,7 @@ from cctbx import geometry_restraints
 from cctbx.geometry_restraints import linking_class
 from cctbx.array_family import flex
 import sys
+from six.moves import StringIO
 
 origin_ids = linking_class.linking_class()
 
@@ -642,6 +643,11 @@ class find_helices_simple(object):
       print >> out, "%d helix-like regions found:" % len(self._helices)
     for selection in self.build_selections():
       print >> out, "  %s" % selection
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 def is_approximately_helical(phi, psi):
   if (-120 < phi < -20) and (-80 < psi < -10):

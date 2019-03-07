@@ -11,6 +11,7 @@ import string
 import re
 import os
 import sys
+from six.moves import StringIO
 
 DEBUG = False
 
@@ -860,6 +861,11 @@ class process_arrays(object):
     del self.mtz_object
     self.mtz_object = None
     return n_refl
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 #-----------------------------------------------------------------------
 # TODO get rid of these two (need to make sure they aren't imported elsewhere)

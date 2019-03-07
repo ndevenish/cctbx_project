@@ -9,6 +9,7 @@
 from __future__ import division
 import sys
 from libtbx import adopt_init_args
+from six.moves import StringIO
 
 class reader(object):
   """A class to read the XPARM.XDS/GXPARM.XDS file used in XDS"""
@@ -247,3 +248,8 @@ class writer(object):
   def write_file(self, filename):
     with open(filename, 'wb') as f:
       self.show(out=f)
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()

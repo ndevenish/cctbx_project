@@ -2,6 +2,7 @@ from __future__ import division
 from cctbx.array_family import flex
 import mmtbx.refinement.real_space.individual_sites
 import random
+from six.moves import StringIO
 
 class run(object):
   def __init__(
@@ -100,3 +101,8 @@ of individual sites.
   def show(self, log, prefix=""):
     for m in self.msg_strings:
       print >> log, "%s %s"%(prefix, m)
+
+  def __str__(self):
+    out = StringIO()
+    self.show(log=out)
+    return out.getvalue.rstrip()

@@ -13,6 +13,7 @@ from scitbx.math import matrix
 from libtbx.utils import Sorry, multi_out
 from cStringIO import StringIO
 import sys, os
+from six.moves import StringIO
 
 
 class quick_rt_mx(object):
@@ -40,6 +41,11 @@ class quick_rt_mx(object):
       print >> out, "%6.3f"%(item),
     print >> out
     print >> out
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 def construct_output_labels(labels, label_appendix, out=None ):
   if out is None:

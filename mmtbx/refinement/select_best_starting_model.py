@@ -14,6 +14,7 @@ from libtbx import easy_mp
 import libtbx.phil
 import os.path
 import sys
+from six.moves import StringIO
 
 master_phil = libtbx.phil.parse("""
 d_min = None
@@ -288,6 +289,11 @@ class select_model(object):
   def space_group_info(self):
     xray_structure, pdb_hierarchy = self.get_best_model()
     return xray_structure.space_group_info()
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 strip_model_params = """
   remove_waters = True

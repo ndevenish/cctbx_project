@@ -3,6 +3,7 @@ from libtbx.command_line import find_unused_imports_crude
 from libtbx.utils import to_unicode
 import sys, os
 import re
+from libtbx.utils import kludge_show_to_str
 
 class file_clutter(object):
 
@@ -168,6 +169,9 @@ class file_clutter(object):
           append(msg2)
         else :
           print(msg2)
+
+  def __str__(self):
+    return kludge_show_to_str(self)
 
 def is_text_file(file_name):
   name = file_name.lower()

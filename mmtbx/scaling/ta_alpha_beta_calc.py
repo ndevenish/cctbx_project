@@ -10,6 +10,7 @@ from libtbx.math_utils import iround
 import math
 import sys
 import iotbx.phil
+from six.moves import StringIO
 
 sigmaa_estimator_params = iotbx.phil.parse("""\
   kernel_width_free_reflections = 100
@@ -303,3 +304,8 @@ class ta_alpha_beta_calc(object):
       print >> out, "%s %7.4f" % (d, sa)
     print >> out
     print >> out
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()

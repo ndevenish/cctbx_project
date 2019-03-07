@@ -3,6 +3,7 @@ import mmtbx.monomer_library
 import mmtbx.monomer_library.pdb_interpretation
 import sys
 from cctbx.geometry_restraints.linking_class import linking_class
+from six.moves import StringIO
 origin_ids = linking_class()
 from libtbx import adopt_init_args
 import mmtbx.model
@@ -72,6 +73,11 @@ class from_pdb(object):
     if(log is None): log = sys.stdout
     for pair in self._pairs:
       print >> log, self.format_clash_string(pair=pair)
+
+  def __str__(self):
+    out = StringIO()
+    self.show(log=out)
+    return out.getvalue.rstrip()
 
 # END_MARKED_FOR_DELETION_OLEG
 

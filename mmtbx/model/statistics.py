@@ -16,6 +16,7 @@ from mmtbx.validation.utils import molprobity_score
 from mmtbx.validation import omegalyze
 from mmtbx.validation import cablam
 from cctbx import adptbx
+from six.moves import StringIO
 
 class geometry(object):
   def __init__(self,
@@ -341,6 +342,11 @@ class geometry(object):
     cif_block.add_loop(loop)
     return cif_block
 
+  def __str__(self):
+    out = StringIO()
+    self.show(log=out)
+    return out.getvalue.rstrip()
+
 class composition(object):
   def __init__(self, pdb_hierarchy):
     self._result = pdb_hierarchy.composition()
@@ -362,6 +368,11 @@ class composition(object):
     print >> log, prefix, "  other (ligands):", r.n_other
     print >> log, prefix, "Ligands:", ligs
 
+  def __str__(self):
+    out = StringIO()
+    self.show(log=out)
+    return out.getvalue.rstrip()
+
 class occupancy(object):
   def __init__(self, hierarchy):
     self._result = hierarchy.occupancy_counts()
@@ -377,6 +388,11 @@ class occupancy(object):
     p("zero     : %d (%-6.2f%s)"%(r.zero_count,r.zero_fraction,"%"))
     p("occ>1    : %d (%-6.2f%s)"%(r.greater_than_1_count,r.greater_than_1_fraction,"%"))
     p("altlocs  : %-6.2f(%s)"%(r.alt_conf_frac,"%"))
+
+  def __str__(self):
+    out = StringIO()
+    self.show(log=out)
+    return out.getvalue.rstrip()
 
 def rms_b_iso_or_b_equiv_bonded(
       geometry_restraints_manager,
@@ -503,6 +519,11 @@ class adp(object):
     else:
       cif_block["_refine.B_iso_mean"] = '?'
     return cif_block
+
+  def __str__(self):
+    out = StringIO()
+    self.show(log=out)
+    return out.getvalue.rstrip()
 
 class info(object):
   def __init__(self, model,

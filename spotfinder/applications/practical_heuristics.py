@@ -10,6 +10,7 @@ from spotfinder.math_support import scitbx_stats
 from spotfinder.applications.heuristic_tbx.spotreporter import spotreporter
 from libtbx.development.timers import Timer, Profiler
 from libtbx.utils import Sorry
+from libtbx.utils import kludge_show_to_str
 
 TALLY2=0
 OVERLAY = 1
@@ -956,3 +957,6 @@ class heuristics_base(object):
     ave_resolution=flex.mean(all_resolutions)
     self.pd['resolution_inspection']='%f'%(ave_resolution)
     return self.pd['resolution_inspection']
+
+  def __str__(self):
+    return kludge_show_to_str(self)

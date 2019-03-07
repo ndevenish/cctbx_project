@@ -5,6 +5,7 @@ from builtins import range
 
 import sys
 import os
+from six.moves import StringIO
 
 def int_or_none(v):
   if (v is None or v == "undefined"): return None
@@ -44,6 +45,11 @@ class task_info(object):
 
   def skip_loop_iteration(self):
     return skip_loop_iteration(*self.as_n_i_pair())
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 def skip_loop_iteration(n, i):
   j = 0

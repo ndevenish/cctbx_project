@@ -4,6 +4,7 @@ from cctbx.array_family import flex
 from libtbx import adopt_init_args
 import math
 import sys
+from six.moves import StringIO
 
 class energies(object):
 
@@ -136,3 +137,8 @@ class energies(object):
         self.gradients_aniso_cart *= self.normalization_factor
       if (self.gradients_iso is not None):
         self.gradients_iso *= self.normalization_factor
+
+  def __str__(self):
+    out = StringIO()
+    self.show(f=out)
+    return out.getvalue.rstrip()

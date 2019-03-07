@@ -4,6 +4,7 @@ from libtbx.utils import Sorry, Usage
 from libtbx import slots_getstate_setstate
 import re
 import sys
+from six.moves import StringIO
 
 master_phil = """
 mtz_file = None
@@ -30,6 +31,11 @@ class r_factor_shell(object):
   def show(self, out, prefix="  "):
     print >> out, "%s%6.3f - %6.3f  %6.4f  %6.4f" % (prefix, self.d_max,
       self.d_min, self.r_work, self.r_free)
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 class r_factor_shells(slots_getstate_setstate):
   __slots__ = ["shells", "overall"]

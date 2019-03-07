@@ -7,6 +7,7 @@ from cctbx import adptbx
 from mmtbx import masks
 import sys
 import boost.python
+from six.moves import StringIO
 cctbx_maptbx_ext = boost.python.import_ext("cctbx_maptbx_ext")
 from libtbx import group_args
 
@@ -222,6 +223,11 @@ class fsc_model_vs_map(object):
     for l in lines:
       if(allcaps): l = l.upper()
       print >> log, l
+
+  def __str__(self):
+    out = StringIO()
+    self.show(log=out)
+    return out.getvalue.rstrip()
 
 def assert_same_gridding(map_1, map_2):
   # XXX remove it!

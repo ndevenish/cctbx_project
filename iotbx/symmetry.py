@@ -4,6 +4,7 @@ from libtbx import group_args
 from libtbx.utils import Sorry
 import os
 import sys
+from six.moves import StringIO
 
 class manager(object):
   """
@@ -182,6 +183,11 @@ class manager(object):
       space_group, unit_cell = self.symmetry_by_file[file_name]
       print >> out, "%s: %s %s" % (os.path.basename(file_name), str(unit_cell),
         str(space_group))
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 # FIXME combine with the above code
 # exercised as part of mmtbx/regression/tst_combine_symmetry.py

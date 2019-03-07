@@ -2,6 +2,7 @@ from __future__ import division
 import cctbx.sgtbx
 
 import boost.python
+from six.moves import StringIO
 ext = boost.python.import_ext("cctbx_maptbx_ext")
 from cctbx_maptbx_ext import *
 
@@ -118,6 +119,11 @@ class d99(object):
     fmt = "%12.6f %8.6f"
     for d_min, cc in zip(self.result.d_mins, self.result.ccs):
       print >> log, fmt%(d_min, cc)
+
+  def __str__(self):
+    out = StringIO()
+    self.show(log=out)
+    return out.getvalue.rstrip()
 
 def assert_same_gridding(map_1, map_2,
                          Sorry_message="Maps have different gridding."):
@@ -1101,6 +1107,11 @@ class spherical_variance_around_point(object):
        self.radius)
     print >> out, "%s  min=%.2f  max=%.2f  mean=%.2f  stddev=%.2f" % \
       (prefix, self.min, self.max, self.mean, self.standard_deviation)
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 def principal_axes_of_inertia(
     real_map,

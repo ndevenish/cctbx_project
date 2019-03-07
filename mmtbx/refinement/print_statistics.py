@@ -14,6 +14,7 @@ import cctbx.xray.structure_factors.global_counters
 from libtbx import easy_pickle
 from itertools import count
 from libtbx import group_args
+from six.moves import StringIO
 
 enable_show_process_info = getenv_bool(
   "MMTBX_PRINT_STATISTICS_ENABLE_SHOW_PROCESS_INFO")
@@ -344,6 +345,11 @@ class refinement_monitor(object):
       action_label,
       format_value("%.4f", self.r_works[-1]),
       format_value("%.4f", self.r_frees[-1]))
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 class stats_table(slots_getstate_setstate):
   __slots__ = [

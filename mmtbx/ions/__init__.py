@@ -20,6 +20,7 @@ from math import exp
 import time
 import os
 import sys
+from six.moves import StringIO
 
 DEFAULT_IONS = ["MG", "CA", "ZN", "CL"]
 HALIDES = ["F", "CL", "BR", "IOD"]
@@ -577,3 +578,8 @@ class atom_type_flags(object):
       if (have_plus or have_minus):
         print >> out, prefix+\
           "(+++ indicates a heavier element, --- indicates a lighter one)"
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()

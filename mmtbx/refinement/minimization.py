@@ -11,6 +11,7 @@ from cctbx import adptbx
 from libtbx.str_utils import format_value
 from libtbx.utils import Sorry
 import mmtbx.refinement.minimization_ncs_constraints
+from six.moves import StringIO
 
 class lbfgs(object):
 
@@ -401,6 +402,11 @@ class monitor(object):
       self.er[i_seq].strip())
     line = line + " "*(78 - len(line))+"|"
     return line
+
+  def __str__(self):
+    out = StringIO()
+    self.show(log=out)
+    return out.getvalue.rstrip()
 
 class run_constrained(object):
   def __init__(self,

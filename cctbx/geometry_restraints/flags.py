@@ -1,6 +1,7 @@
 from __future__ import division
 from libtbx import adopt_init_args
 import sys
+from six.moves import StringIO
 
 class flags(object):
 
@@ -49,3 +50,8 @@ class flags(object):
     print >> f, "  bond similarity:", self.bond_similarity
     print >> f, "  ramachandran:", self.ramachandran_restraints
     print >> f, "  DEN:", self.den_restraints
+
+  def __str__(self):
+    out = StringIO()
+    self.show(f=out)
+    return out.getvalue.rstrip()

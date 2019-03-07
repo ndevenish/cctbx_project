@@ -41,6 +41,7 @@ from cctbx import maptbx
 from libtbx.test_utils import approx_equal
 import libtbx
 import mmtbx.bulk_solvent
+from six.moves import StringIO
 
 ext = boost.python.import_ext("mmtbx_f_model_ext")
 
@@ -2537,6 +2538,11 @@ class mask_result(object):
           format_value("%6.4f", self.r_work),
           format_value("%6.4f", self.r_free),
           format_value("%6.4f", self.r_work_low))
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 # XXX backwards compatibility 2011-02-08
 # bad hack... - relative import

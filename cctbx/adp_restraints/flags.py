@@ -1,6 +1,7 @@
 from __future__ import division
 from libtbx import adopt_init_args
 import sys
+from six.moves import StringIO
 
 class flags(object):
 
@@ -20,3 +21,8 @@ class flags(object):
     print >> f, "  adp_similarity:", self.adp_similarity
     print >> f, "  rigid_bond:", self.rigid_bond
     print >> f, "  isotropic_adp:", self.isotropic_adp
+
+  def __str__(self):
+    out = StringIO()
+    self.show(f=out)
+    return out.getvalue.rstrip()

@@ -16,6 +16,7 @@ from libtbx import group_args, adopt_init_args
 import cStringIO
 import time
 import sys
+from six.moves import StringIO
 
 master_phil = libtbx.phil.parse("""
 file_name = None
@@ -105,6 +106,11 @@ class hbond(object):
       return -1 # antiparallel
     return 0
 
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
+
 class bridge(object):
   def __init__(self, hbond1, hbond2, direction, i_res=None, j_res=None):
     adopt_init_args(self, locals())
@@ -151,6 +157,11 @@ class bridge(object):
       self.j_res)
     self.hbond1.show(out=out, prefix=prefix+"  ")
     self.hbond2.show(out=out, prefix=prefix+"  ")
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 class ladder(object):
   def __init__(self):
@@ -313,6 +324,11 @@ class ladder(object):
       prev_chain_id=prev_res.chain_id,
       prev_resseq=prev_res.resseq,
       prev_icode=prev_res.icode)
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 def get_pdb_fields(atom_group):
   residue_group = atom_group.parent()
@@ -737,3 +753,8 @@ class dssp(object):
         current_sheet.add_strand(next_strand)
         current_sheet.add_registration(register)
     return sheets
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()

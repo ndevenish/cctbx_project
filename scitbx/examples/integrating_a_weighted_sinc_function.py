@@ -3,6 +3,7 @@ from scitbx.array_family import flex
 from scitbx.math import chebyshev_polynome
 import scitbx.math
 import math
+from libtbx.utils import kludge_show_to_str
 
 
 class function(object):
@@ -55,6 +56,9 @@ class function(object):
     wtbi = tbi*w_int
     result = flex.sum(wtbi)
     return result
+
+  def __str__(self):
+    return kludge_show_to_str(self)
 
 def example():
   f = function(5,100)

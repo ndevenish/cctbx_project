@@ -11,6 +11,7 @@ from scitbx import matrix
 from scitbx.python_utils import graph_tools
 from libtbx.utils import Sorry
 import sys
+from six.moves import StringIO
 
 
 def reference_setting_choices(space_group):
@@ -217,6 +218,11 @@ class sub_super_point_group_relations(object):
           print >> out, "             None"
       print >> out
       print >> out
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 
 
@@ -550,6 +556,11 @@ class find_compatible_space_groups(object):
       sx_cb.show(out)
       print >> out
 
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
+
 
 class node_object(object):
   def __init__(self,
@@ -685,6 +696,11 @@ class space_group_graph_from_cell_and_sg(object):
 
         print >> out, "\"",pg,"\" -> \"", next_pg, "\" ;"
     print >> out, "}"
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 
 def compatible_symmetries(point_group):

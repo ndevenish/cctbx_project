@@ -11,6 +11,7 @@ import math
 import sys
 import iotbx.phil
 from libtbx import group_args
+from six.moves import StringIO
 
 sigmaa_estimator_params = iotbx.phil.parse("""\
   kernel_width_free_reflections = 100
@@ -304,3 +305,8 @@ class sigmaa_estimator(object):
     if(not silent): print >> out
     if(not silent): print >> out
     return group_args(resolution = resolution, sigmaa = sigmaa)
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()

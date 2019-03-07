@@ -5,6 +5,7 @@ import libtbx.load_env
 import libtbx.path
 import os
 import sys
+from six.moves import StringIO
 
 this = "gltbx.generate_functions_bpl"
 
@@ -622,6 +623,11 @@ class signature:
         print("      "+line, file=f)
     self.write_version_guard_endif(f=f)
     self.write_no_opaque_pointers_guard_endif(f=f)
+
+  def __str__(self):
+    out = StringIO()
+    self.show(f=out)
+    return out.getvalue.rstrip()
 
 def get_signatures():
   result = []

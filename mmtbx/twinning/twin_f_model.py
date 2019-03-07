@@ -30,6 +30,7 @@ import mmtbx.bulk_solvent.bulk_solvent_and_scaling as bss
 import libtbx.path
 import mmtbx.refinement.targets
 import mmtbx.f_model.f_model_info
+from six.moves import StringIO
 
 master_params =  iotbx.phil.parse("""
   twin_law = None
@@ -96,6 +97,11 @@ class twin_fraction_object(object):
     if out is None:
       out = sys.stdout
     print >> out, "twin fraction: %4.3f" %( self.twin_fraction  )
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 
 
@@ -265,6 +271,11 @@ class scaling_parameters_object(object):
   def deep_copy(self):
     new = scaling_parameters_object(object=self)
     return new
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 
 

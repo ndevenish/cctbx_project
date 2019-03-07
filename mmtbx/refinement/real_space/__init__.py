@@ -25,6 +25,8 @@ from cctbx import eltbx
 
 import scitbx.math
 from libtbx.utils import null_out
+from six.moves import StringIO
+from libtbx.utils import kludge_show_to_str
 
 def setup_test(pdb_answer, pdb_poor, i_pdb, d_min, resolution_factor,
                pdb_for_map = None):
@@ -160,6 +162,11 @@ class rsr_model(object):
     self.states_collector.add(sites_cart = s2)
     self.s1 = self.model.get_sites_cart() # must be last
 
+  def __str__(self):
+    out = StringIO()
+    self.show(log=out)
+    return out.getvalue.rstrip()
+
 def flatten(l):
   if l is None: return None
   return sum(([x] if not (isinstance(x, list) or isinstance(x, flex.size_t)) else flatten(x) for x in l), [])
@@ -294,6 +301,9 @@ class cluster(object):
         ",".join([an[i].strip() for i in cl.atoms_to_rotate]), "<>",\
         ",".join([an[i].strip() for i in cl.selection]), "<>",\
         ",".join([an[i].strip() for i in cl.get_vector_flat()])
+
+  def __str__(self):
+    return kludge_show_to_str(self)
 
 class aa_residue_axes_and_clusters(object):
   def __init__(self,
@@ -690,6 +700,11 @@ class structure_monitor(object):
     self.initialize()
     self.states_collector.add(sites_cart = xray_structure.sites_cart())
     self.assert_pdb_hierarchy_xray_structure_sync()
+
+  def __str__(self):
+    out = StringIO()
+    self.show(log=out)
+    return out.getvalue.rstrip()
 
 def selection_around_to_negate(
       xray_structure,

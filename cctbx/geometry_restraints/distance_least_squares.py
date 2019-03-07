@@ -13,6 +13,7 @@ import scitbx.lbfgs
 from libtbx.str_utils import format_value
 from itertools import count
 import sys
+from six.moves import StringIO
 
 if (1):
   flex.set_random_seed(0)
@@ -355,6 +356,11 @@ class dev_target_result(object):
     if (O.n_nonbonded_proxies is not None):
       print >> f, prefix+"  nonbonded_residual_sum (n=%d): %.6g" % (
         O.n_nonbonded_proxies, O.nonbonded_residual_sum)
+
+  def __str__(self):
+    out = StringIO()
+    self.show(f=out)
+    return out.getvalue.rstrip()
 
 class dev_lbfgs(object):
 

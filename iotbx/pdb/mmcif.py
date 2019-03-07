@@ -13,6 +13,7 @@ from iotbx.pdb.remark_3_interpretation import \
 import iotbx.cif
 from iotbx.cif.builders import crystal_symmetry_builder
 import iotbx.mtrix_biomt
+from six.moves import StringIO
 
 class pdb_hierarchy_builder(crystal_symmetry_builder):
 
@@ -766,6 +767,11 @@ class _cif_get_r_rfree_sigma_object(object):
   def show(self, log = None):
     if(log is None): log = sys.stdout
     print >> log, self.formatted_string()
+
+  def __str__(self):
+    out = StringIO()
+    self.show(log=out)
+    return out.getvalue.rstrip()
 
 
 def extract_f_model_core_constants(cif_block):

@@ -2,6 +2,7 @@ from __future__ import division
 from cctbx import sgtbx
 from scitbx.array_family import flex
 import sys
+from six.moves import StringIO
 
 class partition_t(list): pass
 
@@ -106,6 +107,11 @@ class left_decomposition(object):
           tmp_item = cb_op.apply( item )
 
         print >> out, literal_description(tmp_item).select(format)
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 
 class left_decomposition_point_groups_only(object):
@@ -292,6 +298,11 @@ class double_cosets(object):
       for a in cs:
         print >> out, "("+str(a)+")    ",
       print >> out
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 def test_double_coset_decomposition():
   from  cctbx.sgtbx import subgroups

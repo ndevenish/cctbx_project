@@ -56,6 +56,7 @@ from iotbx.file_reader import any_file
 from mmtbx.rotamer.rotamer_eval import RotamerEval
 
 import boost.python
+from six.moves import StringIO
 utils_ext = boost.python.import_ext("mmtbx_utils_ext")
 from mmtbx_utils_ext import *
 
@@ -3010,6 +3011,11 @@ class experimental_data_target_and_gradients(object):
         group_occ_grad = flex.sum(occ_grads.select(sel))
         result.append([None,group_occ_grad])
     return result
+
+  def __str__(self):
+    out = StringIO()
+    self.show(log=out)
+    return out.getvalue.rstrip()
 
 class states(object):
   def __init__(self, pdb_hierarchy, xray_structure=None, counter=0):

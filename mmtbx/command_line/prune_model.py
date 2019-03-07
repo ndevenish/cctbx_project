@@ -7,6 +7,7 @@ from libtbx.utils import multi_out
 from libtbx import group_args
 import os
 import sys
+from six.moves import StringIO
 
 model_prune_master_phil = """
   resolution_factor = 1/4.
@@ -98,6 +99,11 @@ class residue_summary(object):
         self.map_type, self.score_type, self.score)
     else :
       print >> out, "%s : not part of a continuous chain" % id_str
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 class prune_model(object):
   def __init__(self,

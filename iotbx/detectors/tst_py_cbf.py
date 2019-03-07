@@ -4,6 +4,7 @@ import iotbx.cif
 import sys, email.parser, copy, hashlib, base64
 from cbflib_adaptbx import uncompress,assert_equal
 from iotbx.detectors.detectorbase import DetectorImageBase
+from libtbx.utils import kludge_show_to_str
 
 class cif_binary_section:
   endline = "\r\n"
@@ -56,6 +57,9 @@ class cif_binary_section:
 
   def show(self):
     print self.header_dic
+
+  def __str__(self):
+    return kludge_show_to_str(self)
 
 def get_binary_sections(raw):
   return_sections = []

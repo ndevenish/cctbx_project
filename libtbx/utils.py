@@ -19,6 +19,7 @@ from six.moves import cStringIO as StringIO
 from libtbx.queuing_system_utils import pbs_utils, sge_utils
 from libtbx.math_utils import round2
 from libtbx.str_utils import show_string
+from six.moves import StringIO
 
 try: import gzip
 except ImportError: gzip = None
@@ -1326,6 +1327,11 @@ class host_and_user:
       print(prefix + "PID =", self.pid, file=out)
     self.sge_info.show(out=out, prefix=prefix)
     self.pbs_info.show(out=out, prefix=prefix)
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 def allow_delete_directory(target_dir):
   """

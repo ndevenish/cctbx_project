@@ -21,6 +21,7 @@ import smtbx.utils
 from smtbx.refinement import constraints
 from smtbx.refinement import least_squares
 from cctbx.xray import observations
+from six.moves import StringIO
 
 
 class hooft_analysis(object):
@@ -196,6 +197,11 @@ class hooft_analysis(object):
     print("Hooft y: %s" %format_float_with_su(
       self.hooft_y, self.sigma_y), file=out)
 
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
+
 
 class bijvoet_differences_probability_plot(object):
   """
@@ -243,6 +249,11 @@ class bijvoet_differences_probability_plot(object):
     print("y_intercept: %.3f" %self.fit.y_intercept(), file=out)
     print("slope: %.3f" %self.fit.slope(), file=out)
     print("correlation coefficient: %.4f" %self.correlation.coefficient(), file=out)
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 
 def maximise_students_t_correlation_coefficient(observed_deviations,
@@ -342,3 +353,8 @@ class flack_analysis(object):
   def show(self, out=None):
     if out is None: out = sys.stdout
     print("Flack x: %s" %format_float_with_su(self.flack_x, self.sigma_x), file=out)
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()

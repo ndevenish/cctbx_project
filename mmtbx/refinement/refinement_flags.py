@@ -3,6 +3,7 @@ from cctbx.array_family import flex
 import sys
 from libtbx import adopt_init_args
 from libtbx.utils import Sorry
+from six.moves import StringIO
 
 class manager(object):
   def __init__(self, individual_sites       = False,
@@ -444,3 +445,8 @@ class manager(object):
           next_to_i_seq = next_to_i_seq,
           squeeze_in    = s_occupancies)
     return self
+
+  def __str__(self):
+    out = StringIO()
+    self.show(log=out)
+    return out.getvalue.rstrip()

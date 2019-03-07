@@ -10,6 +10,7 @@ import mmtbx.scaling
 from scitbx.python_utils import robust_statistics
 import sys, math
 import scitbx.lbfgs
+from six.moves import StringIO
 
 
 
@@ -430,6 +431,11 @@ class f_double_prime_ratio(object):
     print >> out
     print >> out, "Estimated ratio of fdp(w1)/fwp(w2): %3.2f"%(self.x[0])
     print >> out
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 
 

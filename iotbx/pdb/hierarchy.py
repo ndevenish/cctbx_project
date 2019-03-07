@@ -1,5 +1,6 @@
 from __future__ import division
 import boost.python
+from six.moves import StringIO
 ext = boost.python.import_ext("iotbx_pdb_hierarchy_ext")
 from iotbx_pdb_hierarchy_ext import *
 
@@ -332,6 +333,11 @@ class overall_counts(object):
     self.show_duplicate_atom_labels(out=sio, max_show=max_show)
     msg = sio.getvalue()
     if (len(msg) != 0): raise Sorry(msg.rstrip())
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 class __hash_eq_mixin(object):
 

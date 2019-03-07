@@ -15,6 +15,7 @@ from libtbx import adopt_init_args, group_args
 from iotbx.pdb.hybrid_36 import hy36encode
 import os
 import sys
+from six.moves import StringIO
 
 def get_master_phil():
   from mmtbx.command_line import generate_master_phil_with_inputs
@@ -282,6 +283,11 @@ class water_peak(object):
   def show(self, out=sys.stdout):
     print >> out, "  %s  map_type=%s  peak=%g" % (self.id_str,
       self.map_type, self.peak_height)
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 def find_peaks_holes(
     fmodel,

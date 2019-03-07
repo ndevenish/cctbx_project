@@ -9,6 +9,7 @@ from libtbx import adopt_init_args
 import sys, math
 
 import boost.python
+from six.moves import StringIO
 ext = boost.python.import_ext("cctbx_emma_ext")
 
 def sgtbx_rt_mx_as_matrix_rt(s):
@@ -241,6 +242,11 @@ class euclidean_match_symmetry(object):
     print >> f, self.rt_mx.type().lookup_symbol()
     print >> f, self.continuous_shifts
 
+  def __str__(self):
+    out = StringIO()
+    self.show(f=out)
+    return out.getvalue.rstrip()
+
 def generate_singles(n, i):
   singles = range(n)
   del singles[i]
@@ -453,6 +459,11 @@ class match_refine(object):
 
       if return_superposed_model2:
         return model2.as_emma_model()
+
+  def __str__(self):
+    out = StringIO()
+    self.show(f=out)
+    return out.getvalue.rstrip()
 
 def match_sort_function(match_a, match_b):
   i = -cmp(len(match_a.pairs), len(match_b.pairs))

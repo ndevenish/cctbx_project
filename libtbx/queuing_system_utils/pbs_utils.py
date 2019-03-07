@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function
 
 import sys
 import os
+from six.moves import StringIO
 
 def eval_env(variable_name):
   return eval(os.environ.get(variable_name, "None"))
@@ -51,6 +52,11 @@ class chunk_info(object):
       n = self.pbs_array_size * self.mpi_num_procs
       i = (self.pbs_arrayid-1 + self.pbs_arrayid_offset) * self.mpi_num_procs + self.mpi_vpid
     return n, i
+
+  def __str__(self):
+    out = StringIO()
+    self.show(out=out)
+    return out.getvalue.rstrip()
 
 # XXX this is probably only going to work with newer versions, e.g. Torque
 def qstat_parse():

@@ -25,6 +25,7 @@ from cctbx import eltbx
 from libtbx.utils import format_float_with_standard_uncertainty \
      as format_float_with_su
 from cctbx import covariance
+from libtbx.utils import kludge_show_to_str
 
 class scattering_type_registry_params(object):
   def __init__(self,
@@ -2479,3 +2480,6 @@ class meaningful_site_cart_differences(object):
     import itertools
     for lbl, diff in itertools.izip(self.labels, self.delta):
       print "%6s: (%.6f, %.6f, %.6f)" % ((lbl,) + diff)
+
+  def __str__(self):
+    return kludge_show_to_str(self)

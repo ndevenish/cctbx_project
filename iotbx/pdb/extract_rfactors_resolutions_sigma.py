@@ -2,6 +2,7 @@ from __future__ import division
 import sys
 from libtbx.str_utils import format_value
 from libtbx import smart_open
+from six.moves import StringIO
 
 class get_r_rfree_sigma(object):
   def __init__(self, remark_2_and_3_records, file_name):
@@ -127,6 +128,11 @@ class get_r_rfree_sigma(object):
   def show(self, log = None):
     if(log is None): log = sys.stdout
     print >> log, self.formatted_string()
+
+  def __str__(self):
+    out = StringIO()
+    self.show(log=out)
+    return out.getvalue.rstrip()
 
 def extract_remark_2_and_3_records(file_name, file_lines=None):
   result = []

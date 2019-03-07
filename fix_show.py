@@ -178,7 +178,6 @@ def analyse_show(node: Node, filename: Filename) -> Optional[str]:
         UnableToTransformError: Function is too complicated to analyse
     """
     # Generate an ID for unique output
-    breakpoint()
     showID = f"{filename}:{node.get_lineno()}"
     # Find calls to print in here
     # Firstly, print statements
@@ -243,7 +242,6 @@ def analyse_show(node: Node, filename: Filename) -> Optional[str]:
                 f"PASS: {showID}: Writes to keyword argument {output_name} (of {with_default})"
             )
         else:
-            # breakpoint()
             assert len(params) <= 1
             raise UnableToTransformError("Doesn't write to stdout; but no arguments?")
 

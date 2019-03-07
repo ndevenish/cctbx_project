@@ -103,7 +103,21 @@ def get_child(node: Node, childtype: int) -> Optional[LN]:
 def get_children(
     node: Node, childtype: int, *, recursive: bool = False, recurse_if_found=False
 ) -> List[LN]:
-    """Extract all children from a node that match a type"""
+    """Extract all children from a node that match a type.
+
+    Arguments:
+        node: The node to search the children of. Won't be matched.
+        childtype: The symbol/token code to search for
+        recursive:
+            If False, only the immediate children of the node will be searched
+        recurse_if_found:
+            If False, will stop recursing once a node has been found. If True,
+            it is possible to have node types that are children of other nodes
+            that were found earlier in the search.
+
+    Returns:
+        A list of nodes matching the search type.
+    """
     if not recursive:
         return [x for x in node.children if x.type == childtype]
     matches = []
@@ -148,8 +162,6 @@ def get_print_file(node: Node) -> Optional[LN]:
 
 class UnableToTransformError(Exception):
     """Thrown when a node doesn't qualify for transformation for some reason"""
-
-    pass
 
 
 def analyse_show(node: Node, filename: Filename) -> Optional[str]:
@@ -578,3 +590,7 @@ def main():
         .modify(process_class)
         .execute(interactive=False, write=do_write, silent=do_silent)
     )
+
+
+if __name__ == "__main__":
+    main()

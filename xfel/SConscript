@@ -4,8 +4,11 @@ Import("env_base", "env_etc")
 
 env_etc.xfel_dist = libtbx.env.dist_path("xfel")
 env_etc.xfel_include = os.path.dirname(env_etc.xfel_dist)
-env_etc.dials_dist = libtbx.env.dist_path("dials")
-env_etc.dials_include = os.path.dirname(env_etc.dials_dist)
+
+# If the DIALS paths aren't already set up, do that now
+env_etc.__dict__.setdefault("dials_dist", libtbx.env.dist_path("dials"))
+env_etc.__dict__.setdefault("dials_include", os.path.dirname(env_etc.dials_dist))
+
 env_etc.xfel_common_includes = [
   env_etc.dials_include,
   env_etc.xfel_include,
